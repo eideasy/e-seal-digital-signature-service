@@ -1,0 +1,16 @@
+server.port=8082
+
+key_id.eID-Easy-qualified.hsm_implementation=pkcs11
+key_id.eID-Easy-qualified.hmac_key=
+key_id.eID-Easy-qualified.pkcs11-path=/usr/lib/libIDPrimePKCS11.so
+key_id.eID-Easy-qualified.token-label=eID Easy (Digital Signature Pin)
+key_id.eID-Easy-qualified.password=
+
+key_id.eID-Easy-signing-1.hsm_implementation=gcloud_hsm
+key_id.eID-Easy-signing-1.hmac_key=
+key_id.eID-Easy-signing-1.password=
+key_id.eID-Easy-signing-1.projectId=
+key_id.eID-Easy-signing-1.locationId=
+key_id.eID-Easy-signing-1.keyRingId=
+key_id.eID-Easy-signing-1.keyId=
+key_id.eID-Easy-signing-1.keyVersionId=1
