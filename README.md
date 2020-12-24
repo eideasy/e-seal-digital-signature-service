@@ -10,6 +10,35 @@ When you initiate adding e-Seal to the document then eID Easy will make request 
 - configure environment variables shown in src/main/resources/application.properties.example
 - run and make the service accessible to the eID Easy API server
 
+### Build instructions
+When the e-seal certificates are on Gemalto SafeNet eToken 5110 IDprime device
+and this application is running on the ARM device like Raspberry PI then docker is recommended for now
+because this crypto token is missing linux PKCS #11 libraries for aarch64 architecture.  
+
+  ```
+    $ mvn clean package
+    $ docker build --no-cache . -t eideasy/eseal
+    $ docker save --output eseal.tar eideasy/eseal
+  ```
+
+### Deployment instructions on Raspberry PI
+
+1. Copy the docker machine to your raspberry and load it.
+   Assuming you have installed ubuntu server to the PI at 192.168.8.240 then follow these commands
+   ```
+   $ rsync -avz --progress eseal.tar ubuntu@192.168.8.240:/home/ubuntu
+   $ ssh ubuntu@192.168.8.240
+   
+   In Raspverry PI machine
+   $ sudo docker load --input /home/ubuntu/eseal.tar
+   ```
+   
+2. Run the docker container
+    ```
+   $ sudo docker rm eideasy_eseal 
+   $ sudo docker run --device=/dev/bus/usb --name=eideasy_eseal --restart always --log-driver syslog --log-opt tag="{{.Name}}/{{.ID}}" eideasy/eseal
+    ```
+
 ### Contact and more info
 
 More details from info@eideasy.com

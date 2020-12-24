@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.eideasy</groupId>
     <artifactId>eseal</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>eseal</name>
     <description>eID Easy e-Seal server</description>
 
