@@ -11,14 +11,15 @@ When you initiate adding e-Seal to the document then eID Easy will make request 
 - run and make the service accessible to the eID Easy API server
 
 ### Build instructions
-When the e-seal certificates are on Gemalto SafeNet eToken 5110 IDprime device
-and this application is running on the ARM device like Raspberry PI then docker is recommended for now
-because this crypto token is missing linux PKCS #11 libraries for aarch64 architecture.  
+Recommended HSM is YubiKey FIPS since it has arm64 compatible PKCS #11 libraries.
 
   ```
-    $ mvn clean package
-    $ docker build --no-cache . -t eideasy/eseal
-    $ docker save --output eseal.tar eideasy/eseal
+    # Install the PKCS #11 required library to maven if needed 
+    mvn install:install-file -Dfile=/YOUR FOLDER/iaikPkcs11Wrapper_1.6.2.jar -DgroupId=pkcs11 -DartifactId=iaikWrapper -Dversion=1.0 -Dpackaging=jar -DgeneratePom=true
+    
+    mvn clean package
+    docker build --no-cache . -t eideasy/eseal
+    docker save --output eseal.tar eideasy/eseal
   ```
 
 ### Deployment instructions on Raspberry PI
@@ -26,21 +27,25 @@ because this crypto token is missing linux PKCS #11 libraries for aarch64 archit
 1. Copy the docker machine to your raspberry and load it.
    Assuming you have installed ubuntu server to the PI at 192.168.8.240 then follow these commands
    ```
-   $ rsync -avz --progress eseal.tar ubuntu@192.168.8.240:/home/ubuntu
-   $ ssh ubuntu@192.168.8.240
+   rsync -avz --progress eseal.tar ubuntu@192.168.8.240:/home/ubuntu
+   ssh ubuntu@192.168.8.240
    
-   In Raspverry PI machine
-   $ sudo docker load --input /home/ubuntu/eseal.tar
+   # In Raspverry PI machine
+   sudo docker load --input /home/ubuntu/eseal.tar
    ```
+
+2. create environment variables file to ~/.env-eseal. Check src/main/resources/application.properties.example 
    
-2. Run the docker container
+3. Run the docker container and remove old instances if needed
     ```
-   $ sudo docker rm eideasy_eseal 
-   $ sudo docker run --device=/dev/bus/usb --name=eideasy_eseal --restart always --log-driver syslog --log-opt tag="{{.Name}}/{{.ID}}" eideasy/eseal
+   sudo docker stop eideasy_eseal -t 0
+   sudo docker rm eideasy_eseal 
+   sudo docker run --env-file ~/.env-eseal --device=/dev/bus/usb -p 8080:8082 --name=eideasy_eseal --restart always --log-driver syslog --log-opt tag="{{.Name}}/{{.ID}}" eideasy/eseal
     ```
 
-### Contact and more info
+
+### Contact and support
 
 More details from info@eideasy.com
 
-
+This product includes software developed by IAIK of Graz University of Technology.

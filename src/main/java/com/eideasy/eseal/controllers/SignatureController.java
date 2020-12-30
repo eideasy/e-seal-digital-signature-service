@@ -72,12 +72,15 @@ public class SignatureController {
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        long start = System.currentTimeMillis();
-        byte[] signature;
+        String base64Signature;
         try {
             verifySealMac(request);
             HsmSigner hmsSigner = factory.getSigner(request.getKeyId());
-            signature = hmsSigner.signDigest(signAlgorithm, HexUtils.fromHexString(request.getDigest()), request.getKeyId());
+            long start = System.currentTimeMillis();
+            byte[] signature = hmsSigner.signDigest(signAlgorithm, HexUtils.fromHexString(request.getDigest()), request.getKeyId());
+            base64Signature = Base64.getEncoder().encodeToString(signature);
+            long end = System.currentTimeMillis();
+            logger.info("Signature done " + (end - start) + "ms. Value=" + base64Signature);
         } catch (SignatureCreateException | Exception e) {
             logger.error("E-seal creation failed", e);
             response.setStatus("error");
@@ -89,11 +92,6 @@ public class SignatureController {
             response.setMessage(errorMessage);
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        String base64Signature = Base64.getEncoder().encodeToString(signature);
-
-        long end = System.currentTimeMillis();
-        logger.info("Signature done " + (end - start) + "ms. Value=" + base64Signature);
 
         response.setSignature(base64Signature);
         response.setAlgorithm(signAlgorithm);

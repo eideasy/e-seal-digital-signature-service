@@ -37,11 +37,9 @@
         </dependency>
 
         <dependency>
-            <groupId>pkcs11</groupId>
-            <artifactId>wrapper</artifactId>
-            <scope>system</scope>
-            <version>1.0</version>
-            <systemPath>${project.basedir}/src/lib/iaikPkcs11Wrapper_1.6.2.jar</systemPath>
+            <groupId>org.xipki.iaik</groupId>
+            <artifactId>sunpkcs11-wrapper</artifactId>
+            <version>1.4.7</version>
         </dependency>
 
         <dependency>

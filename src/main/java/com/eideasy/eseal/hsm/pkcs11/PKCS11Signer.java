@@ -4,7 +4,7 @@ import com.eideasy.eseal.SignatureCreateException;
 import com.eideasy.eseal.hsm.HsmSigner;
 import iaik.pkcs.pkcs11.*;
 import iaik.pkcs.pkcs11.Module;
-import iaik.pkcs.pkcs11.objects.ECDSAPrivateKey;
+import iaik.pkcs.pkcs11.objects.ECPrivateKey;
 import iaik.pkcs.pkcs11.objects.RSAPrivateKey;
 import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
@@ -21,38 +21,30 @@ import java.util.Base64;
 public class PKCS11Signer extends HsmSigner {
 
     private static final Logger logger = LoggerFactory.getLogger(PKCS11Signer.class);
+    private static Session session = null;
 
     public String getCertificate(String keyId) throws SignatureCreateException {
         logger.info("Getting certificate for key " + keyId);
         byte[] encodedCert = null;
         Session session = null;
         try {
+            String objectId = env.getProperty("key_id." + keyId + ".object-id");
+
             session = getSession(keyId);
             session.findObjectsInit(new X509PublicKeyCertificate());
-            Object[] objects = session.findObjects(1);
-
-            if (objects.length > 0) {
-                X509PublicKeyCertificate firstCertificate = ((X509PublicKeyCertificate) objects[0]);
-                encodedCert = firstCertificate.getValue().getByteArrayValue();
-            }
+            Object[] objects = session.findObjects(100);
 
             for (Object object : objects) {
-                if (object instanceof X509PublicKeyCertificate) {
-
+                X509PublicKeyCertificate certificate = ((X509PublicKeyCertificate) object);
+                if (certificate.getId().toString().equals(objectId)) {
+                    logger.info("Found certificate: " + certificate.getLabel());
+                    encodedCert = certificate.getValue().getByteArrayValue();
                     break;
                 }
             }
         } catch (IOException | TokenException e) {
             logger.error("Sertificate loading failed:" + e.getMessage(), e);
             throw new SignatureCreateException("Keystore loading failed", e);
-        } finally {
-            if (session != null) {
-                try {
-                    session.getModule().finalize();
-                } catch (Throwable throwable) {
-                    logger.error("Failed to finalize PKCS11 session");
-                }
-            }
         }
 
         if (encodedCert != null) {
@@ -79,17 +71,27 @@ public class PKCS11Signer extends HsmSigner {
         Session session = null;
         try {
             session = getSession(keyId);
+            String objectId = env.getProperty("key_id." + keyId + ".object-id");
+
             if (signAlgorithm.toLowerCase().contains("rsa")) {
                 RSAPrivateKey templateSignatureKey = new RSAPrivateKey();
                 templateSignatureKey.getSign().setBooleanValue(Boolean.TRUE);
                 session.findObjectsInit(templateSignatureKey);
-                Object[] foundSignatureKeyObjects = session.findObjects(10);
+                Object[] foundSignatureKeyObjects = session.findObjects(100);
 
                 RSAPrivateKey signatureKey = null;
 
-                if (foundSignatureKeyObjects.length > 0) {
-                    signatureKey = (RSAPrivateKey) foundSignatureKeyObjects[0];
-                    logger.info("Signature key: " + signatureKey.getLabel());
+                for (Object sigKeyObject : foundSignatureKeyObjects) {
+                    RSAPrivateKey nextKey = (RSAPrivateKey) sigKeyObject;
+                    if (nextKey.getId().toString().equals(objectId)) {
+                        logger.info("Signature key: " + nextKey.getLabel());
+                        signatureKey = nextKey;
+                        break;
+                    }
+                }
+
+                if (signatureKey == null) {
+                    throw new SignatureCreateException("Signature key not found for ID: " + objectId);
                 }
 
                 session.findObjectsFinal();
@@ -98,15 +100,23 @@ public class PKCS11Signer extends HsmSigner {
                 session.signInit(signatureMechanism, signatureKey);
                 return session.sign(wrapForRsaSign(digest, "SHA256"));
             } else {
-                ECDSAPrivateKey templateSignatureKey = new ECDSAPrivateKey();
+                ECPrivateKey templateSignatureKey = new ECPrivateKey();
                 templateSignatureKey.getSign().setBooleanValue(Boolean.TRUE);
                 session.findObjectsInit(templateSignatureKey);
-                Object[] foundSignatureKeyObjects = session.findObjects(1); // find first
+                Object[] foundSignatureKeyObjects = session.findObjects(100);
 
-                ECDSAPrivateKey signatureKey = null;
-                if (foundSignatureKeyObjects.length > 0) {
-                    signatureKey = (ECDSAPrivateKey) foundSignatureKeyObjects[0];
-                    logger.info("Signature key: " + signatureKey.getLabel());
+                ECPrivateKey signatureKey = null;
+                for (Object sigKeyObject : foundSignatureKeyObjects) {
+                    ECPrivateKey nextKey = (ECPrivateKey) sigKeyObject;
+                    if (nextKey.getId().toString().equals(objectId)) {
+                        logger.info("Signature key: " + nextKey.getLabel());
+                        signatureKey = nextKey;
+                        break;
+                    }
+                }
+
+                if (signatureKey == null) {
+                    throw new SignatureCreateException("Signature key not found for ID: " + objectId);
                 }
 
                 session.findObjectsFinal();
@@ -117,16 +127,8 @@ public class PKCS11Signer extends HsmSigner {
             }
 
         } catch (Throwable e) {
-            logger.error("Signature creation failed: " + e.getMessage(), e);
-            throw new SignatureCreateException("Signature creation failed", e);
-        } finally {
-            if (session != null) {
-                try {
-                    session.getModule().finalize();
-                } catch (Throwable throwable) {
-                    logger.error("Failed to finalize PKCS11 session");
-                }
-            }
+            logger.error("Signature creation failed: " + e.getClass() + ", " + e.getMessage(), e);
+            throw new SignatureCreateException(e.getClass() + ", " + e.getMessage(), e);
         }
     }
 
@@ -150,9 +152,9 @@ public class PKCS11Signer extends HsmSigner {
             Slot[] slots = pkcs11Module.getSlotList(Module.SlotRequirement.TOKEN_PRESENT);
             Token token = null;
             for (Slot slot : slots) {
-                token = slot.getToken();
-                String currentTokenLabel = token.getTokenInfo().getLabel().trim();
+                String currentTokenLabel = slot.getToken().getTokenInfo().getLabel().trim();
                 if (currentTokenLabel.equals(tokenLabel)) {
+                    token = slot.getToken();
                     logger.info("Found token with label " + token.getTokenInfo().getLabel());
                     break;
                 }
@@ -161,22 +163,43 @@ public class PKCS11Signer extends HsmSigner {
             if (token == null) {
                 throw new SignatureCreateException("No tokens found with label=" + tokenLabel);
             }
-            session = token.openSession(Token.SessionType.SERIAL_SESSION, Token.SessionReadWriteBehavior.RO_SESSION, null, null);
 
-            String password = env.getProperty("key_id." + keyId + ".password");
-            if (password == null) {
-                logger.error("Property key_id." + keyId + ".password is empty");
-                throw new SignatureCreateException("Property key_id." + keyId + ".password is empty");
+            if (PKCS11Signer.session == null) {
+                PKCS11Signer.session = token.openSession(Token.SessionType.SERIAL_SESSION, Token.SessionReadWriteBehavior.RO_SESSION, null, null);
             }
 
-            session.login(Session.UserType.USER, password.toCharArray());
-
+            session = loginToToken(PKCS11Signer.session, keyId);
         } catch (PKCS11Exception e) {
             if (!e.getMessage().equals("CKR_CRYPTOKI_ALREADY_INITIALIZED") && !e.getMessage().equals("CKR_USER_ALREADY_LOGGED_IN")) {
                 throw new SignatureCreateException("Cannot initialize PKCS11 module: " + e.getMessage(), e);
             }
         }
 
+        return session;
+    }
+
+    protected Session loginToToken(Session session, String keyId) throws SignatureCreateException {
+        String password = env.getProperty("key_id." + keyId + ".password");
+        if (password == null) {
+            logger.error("Property key_id." + keyId + ".password is empty");
+            throw new SignatureCreateException("Property key_id." + keyId + ".password is empty");
+        }
+
+        try {
+            session.login(Session.UserType.USER, password.toCharArray());
+        } catch (TokenException e) {
+            logger.info("User already logged in. Logging out and in again.");
+            if (e.getMessage().equals("CKR_USER_ALREADY_LOGGED_IN")) {
+                try {
+                    session.logout();
+                    session.login(Session.UserType.USER, password.toCharArray());
+                } catch (TokenException e2) {
+                    throw new SignatureCreateException("Cannot initialize PKCS11 module: " + e2.getMessage(), e2);
+                }
+            }
+        }
+
+        logger.info("Logged in to token: " + session);
         return session;
     }
 
