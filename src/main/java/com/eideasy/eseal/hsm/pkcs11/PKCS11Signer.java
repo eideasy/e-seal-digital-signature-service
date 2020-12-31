@@ -45,6 +45,14 @@ public class PKCS11Signer extends HsmSigner {
         } catch (IOException | TokenException e) {
             logger.error("Sertificate loading failed:" + e.getMessage(), e);
             throw new SignatureCreateException("Keystore loading failed", e);
+        } finally {
+            try {
+                if (session != null) {
+                    session.findObjectsFinal();
+                }
+            } catch (TokenException e) {
+                logger.info("Cannot finalize finding object", e);
+            }
         }
 
         if (encodedCert != null) {
@@ -71,6 +79,7 @@ public class PKCS11Signer extends HsmSigner {
         Session session = null;
         try {
             session = getSession(keyId);
+            loginToToken(session, keyId);
             String objectId = env.getProperty("key_id." + keyId + ".object-id");
 
             if (signAlgorithm.toLowerCase().contains("rsa")) {
@@ -94,7 +103,6 @@ public class PKCS11Signer extends HsmSigner {
                     throw new SignatureCreateException("Signature key not found for ID: " + objectId);
                 }
 
-                session.findObjectsFinal();
                 Mechanism signatureMechanism = Mechanism.get(PKCS11Constants.CKM_RSA_PKCS);
 
                 session.signInit(signatureMechanism, signatureKey);
@@ -119,7 +127,6 @@ public class PKCS11Signer extends HsmSigner {
                     throw new SignatureCreateException("Signature key not found for ID: " + objectId);
                 }
 
-                session.findObjectsFinal();
                 Mechanism signatureMechanism = Mechanism.get(PKCS11Constants.CKM_ECDSA);
 
                 session.signInit(signatureMechanism, signatureKey);
@@ -129,6 +136,14 @@ public class PKCS11Signer extends HsmSigner {
         } catch (Throwable e) {
             logger.error("Signature creation failed: " + e.getClass() + ", " + e.getMessage(), e);
             throw new SignatureCreateException(e.getClass() + ", " + e.getMessage(), e);
+        } finally {
+            try {
+                if (session != null) {
+                    session.findObjectsFinal();
+                }
+            } catch (TokenException e) {
+                logger.info("Cannot finalize finding object", e);
+            }
         }
     }
 
@@ -167,8 +182,8 @@ public class PKCS11Signer extends HsmSigner {
             if (PKCS11Signer.session == null) {
                 PKCS11Signer.session = token.openSession(Token.SessionType.SERIAL_SESSION, Token.SessionReadWriteBehavior.RO_SESSION, null, null);
             }
+            session = PKCS11Signer.session;
 
-            session = loginToToken(PKCS11Signer.session, keyId);
         } catch (PKCS11Exception e) {
             if (!e.getMessage().equals("CKR_CRYPTOKI_ALREADY_INITIALIZED") && !e.getMessage().equals("CKR_USER_ALREADY_LOGGED_IN")) {
                 throw new SignatureCreateException("Cannot initialize PKCS11 module: " + e.getMessage(), e);

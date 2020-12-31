@@ -4,6 +4,8 @@ This application will allow you to add e-Seal/e-Stamp/Digital Stamp to the docum
 
 When you initiate adding e-Seal to the document then eID Easy will make request to this service to get the PKCS #1 signature that will be added to the ASIC-E container or to the PDF as PAdES signature
 
+Recommended HSM is YubiKey FIPS since it has arm64 compatible PKCS #11 libraries.
+
 ### To run this service you need to
 
 - get hmac_key from eID Easy
@@ -11,7 +13,6 @@ When you initiate adding e-Seal to the document then eID Easy will make request 
 - run and make the service accessible to the eID Easy API server
 
 ### Build instructions
-Recommended HSM is YubiKey FIPS since it has arm64 compatible PKCS #11 libraries.
 
   ```
     # Install the PKCS #11 required library to maven if needed 
