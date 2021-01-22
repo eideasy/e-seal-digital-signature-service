@@ -11,9 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -22,12 +24,18 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 public class SignatureController {
 
     private static final Logger logger = LoggerFactory.getLogger(com.eideasy.eseal.controllers.SignatureController.class);
+    private static Map<String, String> keyPasswordMap = new HashMap<>();
 
+    @Autowired
+   	private RestTemplate restTemplate;
+    
     @Autowired
     private Environment env;
 
@@ -60,13 +68,19 @@ public class SignatureController {
     @PostMapping("/api/create-seal")
     public ResponseEntity<?> createSignature(@RequestBody SealRequest request) throws SignatureCreateException {
         logger.info("Signing digest " + request.getDigest());
+        String uri = env.getProperty("key_id." + request.getKeyId() + ".password_url");
 
         SealResponse response = new SealResponse();
         final String signAlgorithm = request.getAlgorithm(); // "SHA256withRSA" or SHA256withECDSA;
-
         String keyPass = env.getProperty("key_id." + request.getKeyId() + ".password");
         if (keyPass == null) {
             logger.error("Private key PIN/password not configured");
+            if(keyPasswordMap.containsKey(request.getKeyId())) {
+            	keyPass = keyPasswordMap.get(request.getKeyId());
+            } else {
+            	keyPass = restTemplate.getForObject(uri, String.class);
+            	keyPasswordMap.put(request.getKeyId(), keyPass);
+            }
             response.setStatus("error");
             response.setMessage("Private key PIN/password not configured");
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -77,7 +91,7 @@ public class SignatureController {
             verifySealMac(request);
             HsmSigner hmsSigner = factory.getSigner(request.getKeyId());
             long start = System.currentTimeMillis();
-            byte[] signature = hmsSigner.signDigest(signAlgorithm, HexUtils.fromHexString(request.getDigest()), request.getKeyId());
+            byte[] signature = hmsSigner.signDigest(signAlgorithm, HexUtils.fromHexString(request.getDigest()), request.getKeyId(),keyPass);
             base64Signature = Base64.getEncoder().encodeToString(signature);
             long end = System.currentTimeMillis();
             logger.info("Signature done " + (end - start) + "ms. Value=" + base64Signature);
@@ -140,4 +154,5 @@ public class SignatureController {
 
         return true;
     }
+    
 }

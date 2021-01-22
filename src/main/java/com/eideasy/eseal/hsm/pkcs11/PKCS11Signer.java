@@ -74,12 +74,12 @@ public class PKCS11Signer extends HsmSigner {
         }
     }
 
-    public byte[] signDigest(String signAlgorithm, byte[] digest, String keyId) throws SignatureCreateException {
+    public byte[] signDigest(String signAlgorithm, byte[] digest, String keyId, String password) throws SignatureCreateException {
         logger.info("Creating signature in PKCS11 for key=" + keyId + ", algorithm=" + signAlgorithm);
         Session session = null;
         try {
             session = getSession(keyId);
-            loginToToken(session, keyId);
+            loginToToken(session, password);
             String objectId = env.getProperty("key_id." + keyId + ".object-id");
 
             if (signAlgorithm.toLowerCase().contains("rsa")) {
@@ -193,13 +193,7 @@ public class PKCS11Signer extends HsmSigner {
         return session;
     }
 
-    protected Session loginToToken(Session session, String keyId) throws SignatureCreateException {
-        String password = env.getProperty("key_id." + keyId + ".password");
-        if (password == null) {
-            logger.error("Property key_id." + keyId + ".password is empty");
-            throw new SignatureCreateException("Property key_id." + keyId + ".password is empty");
-        }
-
+    protected Session loginToToken(Session session, String password) throws SignatureCreateException {
         try {
             session.login(Session.UserType.USER, password.toCharArray());
         } catch (TokenException e) {
