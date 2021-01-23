@@ -1,9 +1,18 @@
 package com.eideasy.eseal.controllers;
 
-import com.eideasy.eseal.SignatureCreateException;
-import com.eideasy.eseal.hsm.HsmSigner;
-import com.eideasy.eseal.hsm.HsmSignerFactory;
-import com.eideasy.eseal.models.*;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
 import org.apache.tomcat.util.buf.HexUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,27 +20,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
+import com.eideasy.eseal.SignatureCreateException;
+import com.eideasy.eseal.hsm.HsmSigner;
+import com.eideasy.eseal.hsm.HsmSignerFactory;
+import com.eideasy.eseal.models.CertificateRequest;
+import com.eideasy.eseal.models.CertificateResponse;
+import com.eideasy.eseal.models.PinResponse;
+import com.eideasy.eseal.models.SealRequest;
+import com.eideasy.eseal.models.SealResponse;
+import com.eideasy.eseal.models.TimestampedRequest;
 
 @RestController
 public class SignatureController {
 
     private static final Logger logger = LoggerFactory.getLogger(com.eideasy.eseal.controllers.SignatureController.class);
-    private static Map<String, String> keyPasswordMap = new HashMap<>();
+    private static Map<String, byte[]> keyPasswordMap = new HashMap<>();
 
     @Autowired
    	private RestTemplate restTemplate;
@@ -76,10 +84,10 @@ public class SignatureController {
         if (keyPass == null) {
             logger.error("Private key PIN/password not configured");
             if(keyPasswordMap.containsKey(request.getKeyId())) {
-            	keyPass = keyPasswordMap.get(request.getKeyId());
+            	keyPass = new String(keyPasswordMap.get(request.getKeyId()));
             } else {
             	PinResponse pinResponse = restTemplate.getForObject(uri, PinResponse.class);
-            	keyPasswordMap.put(request.getKeyId(), pinResponse.getPassword());
+            	keyPasswordMap.put(request.getKeyId(), pinResponse.getPassword().getBytes());
             }
             response.setStatus("error");
             response.setMessage("Private key PIN/password not configured");
