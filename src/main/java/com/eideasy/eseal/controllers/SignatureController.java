@@ -78,8 +78,8 @@ public class SignatureController {
             if(keyPasswordMap.containsKey(request.getKeyId())) {
             	keyPass = keyPasswordMap.get(request.getKeyId());
             } else {
-            	keyPass = restTemplate.getForObject(uri, String.class);
-            	keyPasswordMap.put(request.getKeyId(), keyPass);
+            	PinResponse pinResponse = restTemplate.getForObject(uri, PinResponse.class);
+            	keyPasswordMap.put(request.getKeyId(), pinResponse.getPassword());
             }
             response.setStatus("error");
             response.setMessage("Private key PIN/password not configured");
