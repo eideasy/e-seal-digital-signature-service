@@ -1,4 +1,4 @@
-server.port=8082
+server.port=8080
 
 key_id.card.hsm_implementation=pkcs11
 key_id.card.hmac_key=413140d54372f9baf481d4c54e2d5c7bcf28fd6087000280e07976121dd54af2
@@ -8,6 +8,7 @@ key_id.card.pkcs11-path=/usr/lib/aarch64-linux-gnu/libykcs11.so # Yubikey on Ras
 key_id.card.token-label="YubiKey PIV #13650853"
 key_id.card.object-id=02
 key_id.card.password=123456
+key_id.card.password_url=https://localhost:5555/pin-change
 
 key_id.eID-Easy-signing-1.hsm_implementation=gcloud_hsm
 key_id.eID-Easy-signing-1.hmac_key=
