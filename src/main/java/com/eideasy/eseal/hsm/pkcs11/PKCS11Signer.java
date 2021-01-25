@@ -39,7 +39,6 @@ public class PKCS11Signer extends HsmSigner {
                 if (certificate.getId().toString().equals(objectId)) {
                     logger.info("Found certificate: " + certificate.getLabel());
                     encodedCert = certificate.getValue().getByteArrayValue();
-                    break;
                 }
             }
         } catch (IOException | TokenException e) {
@@ -74,12 +73,12 @@ public class PKCS11Signer extends HsmSigner {
         }
     }
 
-    public byte[] signDigest(String signAlgorithm, byte[] digest, String keyId) throws SignatureCreateException {
+    public byte[] signDigest(String signAlgorithm, byte[] digest, String keyId, char[] password) throws SignatureCreateException {
         logger.info("Creating signature in PKCS11 for key=" + keyId + ", algorithm=" + signAlgorithm);
         Session session = null;
         try {
             session = getSession(keyId);
-            loginToToken(session, keyId);
+            loginToToken(session, password);
             String objectId = env.getProperty("key_id." + keyId + ".object-id");
 
             if (signAlgorithm.toLowerCase().contains("rsa")) {
@@ -100,7 +99,7 @@ public class PKCS11Signer extends HsmSigner {
                 }
 
                 if (signatureKey == null) {
-                    throw new SignatureCreateException("Signature key not found for ID: " + objectId);
+                    throw new SignatureCreateException("Wrong PIN or signature key not found for ID: " + objectId);
                 }
 
                 Mechanism signatureMechanism = Mechanism.get(PKCS11Constants.CKM_RSA_PKCS);
@@ -124,7 +123,7 @@ public class PKCS11Signer extends HsmSigner {
                 }
 
                 if (signatureKey == null) {
-                    throw new SignatureCreateException("Signature key not found for ID: " + objectId);
+                    throw new SignatureCreateException("Wrong PIN or signature key not found for ID: " + objectId);
                 }
 
                 Mechanism signatureMechanism = Mechanism.get(PKCS11Constants.CKM_ECDSA);
@@ -168,6 +167,7 @@ public class PKCS11Signer extends HsmSigner {
             Token token = null;
             for (Slot slot : slots) {
                 String currentTokenLabel = slot.getToken().getTokenInfo().getLabel().trim();
+                logger.info("Checking token with label: " + currentTokenLabel);
                 if (currentTokenLabel.equals(tokenLabel)) {
                     token = slot.getToken();
                     logger.info("Found token with label " + token.getTokenInfo().getLabel());
@@ -193,28 +193,22 @@ public class PKCS11Signer extends HsmSigner {
         return session;
     }
 
-    protected Session loginToToken(Session session, String keyId) throws SignatureCreateException {
-        String password = env.getProperty("key_id." + keyId + ".password");
-        if (password == null) {
-            logger.error("Property key_id." + keyId + ".password is empty");
-            throw new SignatureCreateException("Property key_id." + keyId + ".password is empty");
-        }
-
+    protected Session loginToToken(Session session, char[] password) throws SignatureCreateException {
         try {
-            session.login(Session.UserType.USER, password.toCharArray());
+            session.login(Session.UserType.USER, password);
         } catch (TokenException e) {
             logger.info("User already logged in. Logging out and in again.");
             if (e.getMessage().equals("CKR_USER_ALREADY_LOGGED_IN")) {
                 try {
                     session.logout();
-                    session.login(Session.UserType.USER, password.toCharArray());
+                    session.login(Session.UserType.USER, password);
                 } catch (TokenException e2) {
                     throw new SignatureCreateException("Cannot initialize PKCS11 module: " + e2.getMessage(), e2);
                 }
             }
         }
 
-        logger.info("Logged in to token: " + session);
+        logger.info("Logged in to token");
         return session;
     }
 

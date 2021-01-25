@@ -2,6 +2,9 @@ package com.eideasy.eseal;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
 public class EsealApplication {
@@ -10,4 +13,15 @@ public class EsealApplication {
         SpringApplication.run(EsealApplication.class, args);
     }
 
+    @Bean
+    RestTemplate restTemplate() {
+        return new RestTemplate(getClientHttpRequestFactory());
+    }
+
+    private SimpleClientHttpRequestFactory getClientHttpRequestFactory() {
+        SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
+        clientHttpRequestFactory.setConnectTimeout(5000);
+        clientHttpRequestFactory.setReadTimeout(5000);
+        return clientHttpRequestFactory;
+    }
 }

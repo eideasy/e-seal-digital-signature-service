@@ -15,5 +15,5 @@ public abstract class HsmSigner {
     }
 
     public abstract String getCertificate(String keyId) throws SignatureCreateException, KeyStoreException, CertificateEncodingException;
-    public abstract byte[] signDigest(String algorithm, byte[] digest, String keyId) throws SignatureCreateException;
+    public abstract byte[] signDigest(String algorithm, byte[] digest, String keyId, char[] keyPass) throws SignatureCreateException;
 }

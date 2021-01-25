@@ -28,7 +28,7 @@ public class GoogleKmsSigner extends HsmSigner {
     }
 
     @Override
-    public byte[] signDigest(String algorithm, byte[] digest, String keyId) throws SignatureCreateException {
+    public byte[] signDigest(String algorithm, byte[] digest, String keyId, char[] keyPass) throws SignatureCreateException {
         // TODO untested!
 
         String prop = "key_id." + keyId + ".";
