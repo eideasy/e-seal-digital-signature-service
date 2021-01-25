@@ -12,18 +12,16 @@ public class EsealApplication {
     public static void main(String[] args) {
         SpringApplication.run(EsealApplication.class, args);
     }
-    
-    @Bean
-	RestTemplate restTemplate() {
-		RestTemplate restTemplate = new RestTemplate(getClientHttpRequestFactory());
-		return restTemplate;
-	}
-	
-	private SimpleClientHttpRequestFactory getClientHttpRequestFactory() {
-		SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
-		clientHttpRequestFactory.setConnectTimeout(5000);
-		clientHttpRequestFactory.setReadTimeout(5000);
-		return clientHttpRequestFactory;
-	}
 
+    @Bean
+    RestTemplate restTemplate() {
+        return new RestTemplate(getClientHttpRequestFactory());
+    }
+
+    private SimpleClientHttpRequestFactory getClientHttpRequestFactory() {
+        SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
+        clientHttpRequestFactory.setConnectTimeout(5000);
+        clientHttpRequestFactory.setReadTimeout(5000);
+        return clientHttpRequestFactory;
+    }
 }

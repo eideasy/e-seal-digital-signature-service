@@ -1,15 +1,31 @@
-server.port=8080
+server.port=8082
 
+# Load passwords for these keyId-s during application boot
+# Especially useful if remote PIN loading is used and you run the remote PIN source only for limited time
+init_signers=card
+
+# Chooses the HSM protocol implementation, usually pkcs11 for local physical smart card or USB crypto token
 key_id.card.hsm_implementation=pkcs11
+
+# Agree this value with eID Easy
 key_id.card.hmac_key=413140d54372f9baf481d4c54e2d5c7bcf28fd6087000280e07976121dd54af2
+
+# Choose one correct PKCS #11 module for your HSM
 key_id.card.pkcs11-path=/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so # ID card
 key_id.card.pkcs11-path=/usr/lib/x86_64-linux-gnu/libykcs11.so # Yubikey on PC
 key_id.card.pkcs11-path=/usr/lib/aarch64-linux-gnu/libykcs11.so # Yubikey on Raspberry PI
+
+#Get these values from the token using pkcs11-tool
 key_id.card.token-label="YubiKey PIV #13650853"
 key_id.card.object-id=02
-key_id.card.password=123456
-key_id.card.password_url=https://localhost:5555/pin-change
 
+# If the device is secure then you can set the token PIN here. If device is stolen then you need to revoke certificate immediately.
+key_id.card.password=123456
+
+# For added security you can keep the PIN on remote machine
+key_id.card.password_url=https://example.com:5555/remote-pin?token=123456
+
+# Config params if Google KMS is used
 key_id.eID-Easy-signing-1.hsm_implementation=gcloud_hsm
 key_id.eID-Easy-signing-1.hmac_key=
 key_id.eID-Easy-signing-1.password=
