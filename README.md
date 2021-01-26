@@ -25,7 +25,7 @@ Recommended HSM is YubiKey FIPS since it has arm64 compatible PKCS #11 libraries
 
 ### Deployment instructions on Raspberry PI
 
-1. Copy the docker machine to your raspberry and load it.
+1. Copy the docker machine to your Raspberry and load it.
    Assuming you have installed ubuntu server to the PI at 192.168.8.240 then follow these commands
    ```
    rsync -avz --progress eseal.tar ubuntu@192.168.8.240:/home/ubuntu
@@ -41,7 +41,7 @@ Recommended HSM is YubiKey FIPS since it has arm64 compatible PKCS #11 libraries
     ```
    sudo docker stop eideasy_eseal -t 0
    sudo docker rm eideasy_eseal 
-   sudo docker run --env-file ~/.env-eseal --device=/dev/bus/usb -p 8080:8082 --name=eideasy_eseal --restart always --log-driver syslog --log-opt tag="{{.Name}}/{{.ID}}" eideasy/eseal
+   sudo docker run -d --env-file ~/.env-eseal --device=/dev/bus/usb -p 8080:8082 --name=eideasy_eseal --restart always --log-driver syslog --log-opt tag="{{.Name}}/{{.ID}}" eideasy/eseal
     ```
 
 

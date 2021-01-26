@@ -39,6 +39,7 @@ public class PKCS11Signer extends HsmSigner {
                 if (certificate.getId().toString().equals(objectId)) {
                     logger.info("Found certificate: " + certificate.getLabel());
                     encodedCert = certificate.getValue().getByteArrayValue();
+                    break;
                 }
             }
         } catch (IOException | TokenException e) {
@@ -82,6 +83,7 @@ public class PKCS11Signer extends HsmSigner {
             String objectId = env.getProperty("key_id." + keyId + ".object-id");
 
             if (signAlgorithm.toLowerCase().contains("rsa")) {
+                logger.info("Signing with RSA key");
                 RSAPrivateKey templateSignatureKey = new RSAPrivateKey();
                 templateSignatureKey.getSign().setBooleanValue(Boolean.TRUE);
                 session.findObjectsInit(templateSignatureKey);
@@ -107,6 +109,7 @@ public class PKCS11Signer extends HsmSigner {
                 session.signInit(signatureMechanism, signatureKey);
                 return session.sign(wrapForRsaSign(digest, "SHA256"));
             } else {
+                logger.info("Signing with EC key");
                 ECPrivateKey templateSignatureKey = new ECPrivateKey();
                 templateSignatureKey.getSign().setBooleanValue(Boolean.TRUE);
                 session.findObjectsInit(templateSignatureKey);
