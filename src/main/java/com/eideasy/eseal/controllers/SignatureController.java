@@ -165,7 +165,14 @@ public class SignatureController {
         if (uri == null) {
             throw new SignatureCreateException("password_url not configured for key_id: " + keyId);
         }
-        PinResponse pinResponse = restTemplate.getForObject(uri, PinResponse.class);
+        PinResponse pinResponse;
+        try {
+            pinResponse = restTemplate.getForObject(uri, PinResponse.class);
+        } catch (Exception e) {
+            logger.error("Remote pin loading failed from: " + uri, e);
+            return false;
+        }
+
         if (pinResponse == null || pinResponse.getPassword() == null) {
             logger.error("Remote pin loading failed from: " + uri);
             return false;
