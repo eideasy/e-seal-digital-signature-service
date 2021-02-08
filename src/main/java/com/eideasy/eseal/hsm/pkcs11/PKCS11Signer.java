@@ -43,6 +43,19 @@ public class PKCS11Signer extends HsmSigner {
                 }
             }
         } catch (IOException | TokenException e) {
+            if ("CKR_DEVICE_REMOVED".equals(e.getMessage())) {
+                logger.info(e.getMessage() + ", reopening session");
+                PKCS11Signer.session = null;
+                session = null;
+                return getCertificate(keyId);
+            }
+            if (e.getMessage() != null && e.getMessage().contains("CKR_SESSION_HANDLE_INVALID")) {
+                logger.info("CKR_SESSION_HANDLE_INVALID, restarting");
+                PKCS11Signer.session = null;
+                session = null;
+                return getCertificate(keyId);
+            }
+            logger.info(e.getMessage());
             logger.error("Sertificate loading failed:" + e.getMessage(), e);
             throw new SignatureCreateException("Keystore loading failed", e);
         } finally {
@@ -136,6 +149,18 @@ public class PKCS11Signer extends HsmSigner {
             }
 
         } catch (Throwable e) {
+            if ("CKR_DEVICE_REMOVED".equals(e.getMessage())) {
+                logger.info(e.getMessage() + ", reopening session");
+                PKCS11Signer.session = null;
+                session = null;
+                return signDigest(signAlgorithm, digest, keyId, password);
+            }
+            if ("CKR_SESSION_HANDLE_INVALID".equals(e.getMessage())) {
+                logger.info("CKR_SESSION_HANDLE_INVALID, restarting");
+                PKCS11Signer.session = null;
+                session = null;
+                return signDigest(signAlgorithm, digest, keyId, password);
+            }
             logger.error("Signature creation failed: " + e.getClass() + ", " + e.getMessage(), e);
             throw new SignatureCreateException(e.getClass() + ", " + e.getMessage(), e);
         } finally {
@@ -169,6 +194,11 @@ public class PKCS11Signer extends HsmSigner {
             Slot[] slots = pkcs11Module.getSlotList(Module.SlotRequirement.TOKEN_PRESENT);
             Token token = null;
             for (Slot slot : slots) {
+                Long slotId = Long.decode(env.getProperty("key_id." + keyId + ".slot"));
+                if (slot.getSlotID() != slotId) {
+                    logger.info("Looking slot " + slotId + " found " + slot.getSlotID());
+                    continue;
+                }
                 String currentTokenLabel = slot.getToken().getTokenInfo().getLabel().trim();
                 logger.info("Checking token with label: " + currentTokenLabel);
                 if (currentTokenLabel.equals(tokenLabel)) {

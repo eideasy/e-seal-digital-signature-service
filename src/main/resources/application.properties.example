@@ -1,5 +1,7 @@
 server.port=8082
 
+#Check the tips from https://eideasy.com/configuring-e-seal-document-signing-appliance/
+
 # Load passwords for these keyId-s during application boot
 # Especially useful if remote PIN loading is used and you run the remote PIN source only for limited time
 init_signers=card
@@ -14,10 +16,14 @@ key_id.card.hmac_key=413140d54372f9baf481d4c54e2d5c7bcf28fd6087000280e07976121dd
 key_id.card.pkcs11-path=/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so # ID card
 key_id.card.pkcs11-path=/usr/lib/x86_64-linux-gnu/libykcs11.so # Yubikey on PC
 key_id.card.pkcs11-path=/usr/lib/aarch64-linux-gnu/libykcs11.so # Yubikey on Raspberry PI
+key_id.card.pkcs11-path=/usr/lib/libIDPrimePKCS11.so # Gemalto Safenet 5110 CC eToken
 
 #Get these values from the token using pkcs11-tool
 key_id.card.token-label="YubiKey PIV #13650853"
 key_id.card.object-id=02
+
+# Optional, default is slot 0. Might be needed with Gemalto Safenet eToken 5110
+key_id.card.slot=0x11
 
 # If the device is secure then you can set the token PIN here. If device is stolen then you need to revoke certificate immediately.
 key_id.card.password=123456
