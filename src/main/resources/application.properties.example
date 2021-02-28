@@ -13,9 +13,10 @@ key_id.card.hsm_implementation=pkcs11
 key_id.card.hmac_key=413140d54372f9baf481d4c54e2d5c7bcf28fd6087000280e07976121dd54af2
 
 # Choose one correct PKCS #11 module for your HSM
-key_id.card.pkcs11-path=/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so # ID card
+key_id.card.pkcs11-path=/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so # Estonian ID card on PC
 key_id.card.pkcs11-path=/usr/lib/x86_64-linux-gnu/libykcs11.so # Yubikey on PC
 key_id.card.pkcs11-path=/usr/lib/aarch64-linux-gnu/libykcs11.so # Yubikey on Raspberry PI
+key_id.card.pkcs11-path=/usr/lib/libykcs11.so # Yubikey on some Linux OS-s
 key_id.card.pkcs11-path=/usr/lib/libIDPrimePKCS11.so # Gemalto Safenet 5110 CC eToken
 
 #Get these values from the token using pkcs11-tool
@@ -31,12 +32,12 @@ key_id.card.password=123456
 # For added security you can keep the PIN on remote machine
 key_id.card.password_url=https://example.com:5555/remote-pin?token=123456
 
-# Config params if Google KMS is used
+# Config params sample if Google KMS is used
 key_id.eID-Easy-signing-1.hsm_implementation=gcloud_hsm
-key_id.eID-Easy-signing-1.hmac_key=
-key_id.eID-Easy-signing-1.password=
-key_id.eID-Easy-signing-1.projectId=
-key_id.eID-Easy-signing-1.locationId=
-key_id.eID-Easy-signing-1.keyRingId=
-key_id.eID-Easy-signing-1.keyId=
+key_id.eID-Easy-signing-1.hmac_key=413140d54372f9baf481d4c54e2d5c7bcf28fd6087000280e07976121dd54af2
+key_id.eID-Easy-signing-1.projectId=curious-oyster-127310
+key_id.eID-Easy-signing-1.locationId=europe-north1
+key_id.eID-Easy-signing-1.keyRingId=eID-Easy-ring-1
+key_id.eID-Easy-signing-1.keyId=eID-Easy-signing-1
 key_id.eID-Easy-signing-1.keyVersionId=1
+key_id.eID-Easy-signing-1.certificate=MIIGYDCCBEigAwIBAgIQIFiMLWG0+B9f8uq31h4IvjANBgkqhkiG9w0BAQsFADCBjjELMAkGA1UEBhMCRUUxIjAgBgNVBAoMGUFTIFNlcnRpZml0c2VlcmltaXNrZXNrdXMxITAfBgNVBAsMGFNlcnRpZml0c2VlcmltaXN0ZWVudXNlZDEXMBUGA1UEYQwOTlRSRUUtMTA3NDcwMTMxHzAdBgNVBAMMFlRFU1Qgb2YgS0xBU1MzLVNLIDIwMTYwHhcNMjEwMTA0MTAxMTM0WhcNMjQwMjAzMTAxMTM0WjCBkjEXMBUGA1UEYQwOTlRSRUUtMTQwODAwMTQxETAPBgNVBAUTCDE0MDgwMDE0MREwDwYDVQQIDAhIYXJqdW1hYTEQMA4GA1UEBwwHVGFsbGlubjELMAkGA1UEBhMCRUUxFTATBgNVBAoMDEVJRCBFYXN5IE/DnDEbMBkGA1UEAwwSZUlEIEVhc3kgdGVzdCBzZWFsMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1O90LgqwYbHZY7w07Uogc6rJMe1uFaE3IFKX2AIiX9OzMvSGovMMtQmekGgHLqfse6qib7dkGxkiOjJpiHiLNVyNsmMU9LJlxcRQsVCvcxU6w3z2zk1WJfBExp6VlZWr2pW3hQGKoSbksDJwKhcwBPek+wZFuHQ7zIGqAtO7+2SB5pLbk7+Bj4/iMZpHMboPLlhg6JdUpZPLu5E05FK9wvabzNIgm4FgS5XoHou+J+BqA60Y9M/Zf0sZgK3IS55AaI/Oibn3r4honabRI1R6ijxqnpN9RhiVBAMXXaPKevyiitfnG7PvzsCoi+ptYO/+/FHptYTVvBm66afavamaewIDAQABo4IBsjCCAa4wCQYDVR0TBAIwADBTBgNVHSAETDBKMDAGCSsGAQQBzh8HAzAjMCEGCCsGAQUFBwIBFhVodHRwczovL3d3dy5zay5lZS9jcHMwCQYHBACL7EABATALBgkrBgEEAc4fCQEwHwYDVR0jBBgwFoAULhuPuwEvNPjaMASLXMHyXCXj2PcwDgYDVR0PAQH/BAQDAgZAMB0GA1UdDgQWBBSIy0g2BRSqjuRMlSfr43e8lvizkDB5BggrBgEFBQcBAQRtMGswLQYIKwYBBQUHMAGGIWh0dHA6Ly9haWEuZGVtby5zay5lZS9rbGFzczMtMjAxNjA6BggrBgEFBQcwAoYuaHR0cHM6Ly9jLnNrLmVlL1RFU1Rfb2ZfS0xBU1MzLVNLXzIwMTYuZGVyLmNydDCBgAYIKwYBBQUHAQMEdDByMAgGBgQAjkYBATATBgYEAI5GAQYwCQYHBACORgEGAjBRBgYEAI5GAQUwRzBFFj9odHRwczovL3NrLmVlL2VuL3JlcG9zaXRvcnkvY29uZGl0aW9ucy1mb3ItdXNlLW9mLWNlcnRpZmljYXRlcy8TAkVOMA0GCSqGSIb3DQEBCwUAA4ICAQAfHzLEa4QxtNyIh+l/CUsOmGuOg8ujx+ytu7O8GGFRuQg9WVkcbABpua8+RVl226iVhFRbM3fPRmcALXObGVB8vMvE0Ecq9G7y2pX0/T2cbgYhG3DLEOjaVoJm/ipUIZsSS4sXe/LKttV5iiJb6GeU4HMaIKkSQDI+Xo95vhaNmISPe1UJvl8PPvwkBOP10EMzh1n+/3LhIvdcFAAZ59EJ941IoGX8rNcq6OzRRyQ3OJzAbn7owfPOmEmK7r/URPFCYZT9pxjJmCWuu1PgZc0sHgWgWGuUnmBswqrRV6HlKFKAiC4nBdtXkHva2Q5OKXdGG8m6WDtVjPfeH72u2edp9b6c/b+t/yaItxOiEHtC6CwqVbMfZiSUGw7d/JnOPqx7XpSzdiXdIlE+v3jx3TmCJ83r76kKiH8yVKfQq0TS77a+GHCGVPt5WE9gLrG/t6V2rM3CO2Yi0ZEX816+zYdet0Tp1giymit/TwWnkYAtWKXMvnjMc5hDh9ObZIRT48n0cfe2lbfR376VD7MW8p2evcCq+G0hhbw/YnuO4QrzQux+4AfJDFq27zJqx9auuhZ8uGn2ENbJYsCIabIHQmGo7R/S/vXfBS2U4VniGXG+g3yl8YGISkMs4utZ5WMvZ9N569bhQhgIURKjOHcM7Tp+duPnweUaTTofUwWh16tW+g==

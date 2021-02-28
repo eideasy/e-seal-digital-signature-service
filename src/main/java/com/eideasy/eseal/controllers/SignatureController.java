@@ -186,8 +186,8 @@ public class SignatureController {
         // Properties must have this value configured.
         String hmacKey = env.getProperty("key_id." + keyId + ".hmac_key");
         if (hmacKey == null) {
-            logger.error("Hmac key not configured");
-            throw new SignatureCreateException("HMAC key not configured");
+            logger.error("Hmac key not configured for key " + keyId);
+            throw new SignatureCreateException("HMAC key not configured for key " + keyId);
         }
 
         Mac sha256_HMAC = Mac.getInstance("HmacSHA256");

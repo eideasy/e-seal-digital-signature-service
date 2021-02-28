@@ -24,13 +24,11 @@ public class GoogleKmsSigner extends HsmSigner {
 
     @Override
     public String getCertificate(String keyId) throws KeyStoreException, CertificateEncodingException {
-        return null;
+        return env.getProperty("key_id." + keyId + ".certificate");
     }
 
     @Override
     public byte[] signDigest(String algorithm, byte[] digest, String keyId, char[] keyPass) throws SignatureCreateException {
-        // TODO untested!
-
         String prop = "key_id." + keyId + ".";
         String projectId = env.getProperty(prop + "projectId");
         String locationId = env.getProperty(prop + "locationId");

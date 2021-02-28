@@ -194,11 +194,15 @@ public class PKCS11Signer extends HsmSigner {
             Slot[] slots = pkcs11Module.getSlotList(Module.SlotRequirement.TOKEN_PRESENT);
             Token token = null;
             for (Slot slot : slots) {
-                Long slotId = Long.decode(env.getProperty("key_id." + keyId + ".slot"));
-                if (slot.getSlotID() != slotId) {
-                    logger.info("Looking slot " + slotId + " found " + slot.getSlotID());
-                    continue;
+                String slotString = env.getProperty("key_id." + keyId + ".slot");
+                if (slotString != null) {
+                    Long slotId = Long.decode(slotString);
+                    if (slot.getSlotID() != slotId) {
+                        logger.info("Looking slot " + slotId + " found " + slot.getSlotID());
+                        continue;
+                    }
                 }
+
                 String currentTokenLabel = slot.getToken().getTokenInfo().getLabel().trim();
                 logger.info("Checking token with label: " + currentTokenLabel);
                 if (currentTokenLabel.equals(tokenLabel)) {
