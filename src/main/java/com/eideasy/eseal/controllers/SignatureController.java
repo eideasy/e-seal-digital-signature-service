@@ -154,6 +154,12 @@ public class SignatureController {
     }
 
     protected boolean loadKeyPassword(String keyId) throws SignatureCreateException {
+        if ("gcloud_hsm".equals(env.getProperty("key_id." + keyId + ".hsm_implementation"))) {
+            // Google Cloud HSM keys do not have passwords/PINs
+            keyPasswordMap.put(keyId, new char[0]);
+            return true;
+        }
+
         String password = env.getProperty("key_id." + keyId + ".password");
         if (password != null) {
             keyPasswordMap.put(keyId, password.toCharArray());

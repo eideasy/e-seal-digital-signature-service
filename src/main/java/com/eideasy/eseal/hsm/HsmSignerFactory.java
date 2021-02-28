@@ -1,7 +1,6 @@
 package com.eideasy.eseal.hsm;
 
 import com.eideasy.eseal.SignatureCreateException;
-import com.eideasy.eseal.hsm.pkcs11.PKCS11Signer;
 import com.eideasy.eseal.hsm.gcloud.GoogleKmsSigner;
 
 import org.slf4j.Logger;
@@ -37,10 +36,6 @@ public class HsmSignerFactory {
 
         HsmSigner signer = null;
         switch (implementation) {
-            case "pkcs11":
-                signer = new PKCS11Signer();
-                signer.setEnv(env);
-                return signer;
             case "gcloud_hsm":
                 signer = new GoogleKmsSigner();
                 signer.setEnv(env);

@@ -1,10 +1,25 @@
-# e-Sealing digital signature service for eID Easy 
+# e-Sealing digital signature service for eID Easy
 
-This application will allow you to add e-Seal/e-Stamp/Digital Stamp to the documents using eID Easy while keeping full control of your document signing certificate.
+This application will allow you to add e-Seal/e-Stamp/Digital Stamp to the documents using eID Easy while keeping full
+control of your document signing certificate.
 
-When you initiate adding e-Seal to the document then eID Easy will make request to this service to get the PKCS #1 signature that will be added to the ASIC-E container or to the PDF as PAdES signature
+When you initiate adding e-Seal to the document then eID Easy will make request to this service to get the PKCS #1
+signature that will be added to the ASIC-E container or to the PDF as PAdES signature
 
 Recommended HSM is YubiKey FIPS since it has arm64 compatible PKCS #11 libraries.
+
+### Notes on Google Cloud HSM ###
+
+If you are using Google Cloud HSM then you can use branch google-cloud-hsm-only. Make sure you have Google application
+credentials generated. Check https://cloud.google.com/docs/authentication/getting-started if needed. If needed then you
+could modify Dockerfile to include the credentials also in the image.
+
+Add these properties when running the image to set docker machine environment and mount the volume with application
+credentials file location
+
+```
+sudo docker run -d --env-file ~/.env-eseal -p 8080:8082 --name=eideasy_eseal --restart always -v /path/to/credentials.json:/tmp/keys/google-credentials.json:ro -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/google-credentials.json --log-driver syslog --log-opt tag="{{.Name}}/{{.ID}}" eideasy/eseal
+```
 
 ### To run this service you need to
 
@@ -25,8 +40,8 @@ Recommended HSM is YubiKey FIPS since it has arm64 compatible PKCS #11 libraries
 
 ### Deployment instructions on Raspberry PI
 
-1. Copy the docker machine to your Raspberry and load it.
-   Assuming you have installed ubuntu server to the PI at 192.168.8.240 then follow these commands
+1. Copy the docker machine to your Raspberry and load it. Assuming you have installed ubuntu server to the PI at
+   192.168.8.240 then follow these commands
    ```
    rsync -avz --progress eseal.tar ubuntu@192.168.8.240:/home/ubuntu
    ssh ubuntu@192.168.8.240
@@ -35,15 +50,14 @@ Recommended HSM is YubiKey FIPS since it has arm64 compatible PKCS #11 libraries
    sudo docker load --input /home/ubuntu/eseal.tar
    ```
 
-2. create environment variables file to ~/.env-eseal. Check src/main/resources/application.properties.example 
-   
+2. create environment variables file to ~/.env-eseal. Check src/main/resources/application.properties.example
+
 3. Run the docker container and remove old instances if needed
     ```
    sudo docker stop eideasy_eseal -t 0
    sudo docker rm eideasy_eseal 
    sudo docker run -d --env-file ~/.env-eseal --device=/dev/bus/usb -p 8080:8082 --name=eideasy_eseal --restart always --log-driver syslog --log-opt tag="{{.Name}}/{{.ID}}" eideasy/eseal
     ```
-
 
 ### Contact and support
 
