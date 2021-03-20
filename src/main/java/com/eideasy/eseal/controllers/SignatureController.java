@@ -171,7 +171,14 @@ public class SignatureController {
         if (uri == null) {
             throw new SignatureCreateException("password_url not configured for key_id: " + keyId);
         }
-        PinResponse pinResponse = restTemplate.getForObject(uri, PinResponse.class);
+        PinResponse pinResponse;
+        try {
+            pinResponse = restTemplate.getForObject(uri, PinResponse.class);
+        } catch (Exception e) {
+            logger.error("Remote pin loading failed from: " + uri, e);
+            return false;
+        }
+
         if (pinResponse == null || pinResponse.getPassword() == null) {
             logger.error("Remote pin loading failed from: " + uri);
             return false;
@@ -185,8 +192,8 @@ public class SignatureController {
         // Properties must have this value configured.
         String hmacKey = env.getProperty("key_id." + keyId + ".hmac_key");
         if (hmacKey == null) {
-            logger.error("Hmac key not configured");
-            throw new SignatureCreateException("HMAC key not configured");
+            logger.error("Hmac key not configured for key " + keyId);
+            throw new SignatureCreateException("HMAC key not configured for key " + keyId);
         }
 
         Mac sha256_HMAC = Mac.getInstance("HmacSHA256");

@@ -49,5 +49,4 @@ public class HsmSignerFactory {
 
         throw new SignatureCreateException("Unknown HSM implementation: " + implementation);
     }
-
 }

@@ -35,6 +35,7 @@ sudo docker run -d --env-file ~/.env-eseal -p 8080:8082 --name=eideasy_eseal --r
     
     mvn clean package
     docker build --no-cache . -t eideasy/eseal
+    docker system prune
     docker save --output eseal.tar eideasy/eseal
   ```
 
@@ -43,11 +44,11 @@ sudo docker run -d --env-file ~/.env-eseal -p 8080:8082 --name=eideasy_eseal --r
 1. Copy the docker machine to your Raspberry and load it. Assuming you have installed ubuntu server to the PI at
    192.168.8.240 then follow these commands
    ```
-   rsync -avz --progress eseal.tar ubuntu@192.168.8.240:/home/ubuntu
+   rsync -avz --progress eseal.tar rock@192.168.8.238:/home/rock
    ssh ubuntu@192.168.8.240
    
    # In Raspverry PI machine
-   sudo docker load --input /home/ubuntu/eseal.tar
+   sudo docker load --input /home/rock/eseal.tar
    ```
 
 2. create environment variables file to ~/.env-eseal. Check src/main/resources/application.properties.example
@@ -56,7 +57,7 @@ sudo docker run -d --env-file ~/.env-eseal -p 8080:8082 --name=eideasy_eseal --r
     ```
    sudo docker stop eideasy_eseal -t 0
    sudo docker rm eideasy_eseal 
-   sudo docker run -d --env-file ~/.env-eseal --device=/dev/bus/usb -p 8080:8082 --name=eideasy_eseal --restart always --log-driver syslog --log-opt tag="{{.Name}}/{{.ID}}" eideasy/eseal
+   sudo docker run -d --env-file ~/.env-eseal --device=/dev/bus/usb -p 127.0.0.1:9080:8082 --name=eideasy_eseal --restart always --log-driver syslog --log-opt tag="{{.Name}}/{{.ID}}" eideasy/eseal   
     ```
 
 ### Contact and support
