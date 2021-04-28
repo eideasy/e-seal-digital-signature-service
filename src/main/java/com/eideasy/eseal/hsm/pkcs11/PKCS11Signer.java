@@ -26,11 +26,12 @@ public class PKCS11Signer extends HsmSigner {
     private static Map<String, Session> sessions = new HashMap<>();
 
     public String getCertificate(String keyId) throws SignatureCreateException {
-        logger.info("Getting certificate for key " + keyId);
         byte[] encodedCert = null;
         Session session = null;
         try {
             String objectId = env.getProperty("key_id." + keyId + ".object-id");
+
+            logger.info("Getting certificate for key " + keyId + " with configured ID: " + objectId);
 
             session = getSession(keyId);
             session.findObjectsInit(new X509PublicKeyCertificate());
@@ -39,9 +40,11 @@ public class PKCS11Signer extends HsmSigner {
             for (Object object : objects) {
                 X509PublicKeyCertificate certificate = ((X509PublicKeyCertificate) object);
                 if (certificate.getId().toString().equals(objectId)) {
-                    logger.info("Found certificate: " + certificate.getLabel());
+                    logger.info("Found certificate: " + certificate.getId());
                     encodedCert = certificate.getValue().getByteArrayValue();
                     break;
+                } else {
+                    logger.info("Certificate not found for ID: " + certificate.getId());
                 }
             }
         } catch (IOException | TokenException e) {
@@ -57,8 +60,7 @@ public class PKCS11Signer extends HsmSigner {
                 session = null;
                 return getCertificate(keyId);
             }
-            logger.info(e.getMessage());
-            logger.error("Sertificate loading failed:" + e.getMessage(), e);
+            logger.error("Certificate loading failed:" + e.getMessage(), e);
             throw new SignatureCreateException("Keystore loading failed", e);
         } finally {
             try {

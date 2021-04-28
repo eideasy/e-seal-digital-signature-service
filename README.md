@@ -41,7 +41,7 @@ sudo docker run -d --env-file ~/.env-eseal -p 8080:8082 --name=eideasy_eseal --r
 
 ### Deployment instructions on Raspberry PI
 
-1. Copy the docker machine to your Raspberry and load it. Assuming you have installed ubuntu server to the PI at
+1. Copy the docker machine to your Raspberry or other device and load it. Assuming you have installed ubuntu server at IP
    192.168.8.240 then follow these commands
    ```
    rsync -avz --progress eseal.tar rock@192.168.8.238:/home/rock
