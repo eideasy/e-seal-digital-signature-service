@@ -8,7 +8,7 @@ if [ $status -ne 0 ]; then
 fi
 
 # Start the second process
-java -jar eseal.jar
+java -Dfile.encoding="UTF-8" -jar  eseal.jar
 status=$?
 if [ $status -ne 0 ]; then
   echo "Failed to start my_second_process: $status"
